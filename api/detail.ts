@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { WC_COUNTRIES, findByCode, findGroupOf } from './_data';
+import { WC_COUNTRIES, findByCode, findGroupOf, flagUrl } from './_data';
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
   const codeParam = req.query.code;
@@ -18,16 +18,20 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
 
   const { key, country } = match;
   const group = findGroupOf(key);
-  const teammates = group
+  const group_teams = group
     ? group.teams
         .filter((teamKey) => teamKey !== key)
         .map((teamKey) => {
           const t = WC_COUNTRIES[teamKey];
-          return { code: t.code, name: t.name, nick: t.nick };
+          return {
+            name: t.name,
+            flagUrl: flagUrl(t.code)
+          };
         })
     : [];
 
   res.status(200).json({
+    group: group?.letter,
     code: country.code,
     name: country.name,
     nick: country.nick,
@@ -38,6 +42,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     star: country.star,
     moment: country.moment,
     fact: country.fact,
-    country_in_same_group: teammates,
+    groupCountries: group_teams,
+    flagUrl: flagUrl(country.code)
   });
 }
